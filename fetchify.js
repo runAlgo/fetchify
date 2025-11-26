@@ -1,34 +1,50 @@
-class Fetchify{
-    config = {
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    }
-    constructor(config) {
-        this.config = this.mergeConfig(config);
+class Fetchify {
+  config = {
+    timeout: 1000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  constructor(config) {
+    this.config = this.mergeConfig(config);
+  }
+
+  dispatchRequest({ url, config }) {
+    const abortController = new AbortController();
+    const timeout = this.config.timeout || 0;
+
+    if(timeout) {
+        setTimeout(() => abortController.abort(), timeout)
     }
 
-    async get(url, config) {
-        const finalConfig = this.mergeConfig(config)
-        return fetch(`${this.config.baseURL}${url}`, finalConfig);     
-    }
+    const finalConfig = this.mergeConfig(config);
+    return fetch(`${this.config.baseURL}${url}`, {...finalConfig, signal: abortController.signal});
+  }
 
-    mergeConfig(config) {
-       return {
-        ...this.config, //
-        ...config,
-        headers: {
-            ...(this.config.headers || {}),
-            ...(config?.headers || {}),
-        }
-       }
-    }
+  async get(url, config) {
+    return this.dispatchRequest({ url, config: { ...config, method: "GET" } });
+  }
+
+  async post(url, data, config) {
+    return this.dispatchRequest({ url, config: { ...config, method: "POST" } });
+  }
+
+  mergeConfig(config) {
+    return {
+      ...this.config, //
+      ...config,
+      headers: {
+        ...(this.config.headers || {}),
+        ...(config?.headers || {}),
+      },
+    };
+  }
 }
 
 function create(config) {
-    return new Fetchify(config)
+  return new Fetchify(config);
 }
 
 export default {
-    create,
-}
+  create,
+};
