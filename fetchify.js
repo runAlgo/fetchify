@@ -9,16 +9,26 @@ class Fetchify {
     this.config = this.mergeConfig(config);
   }
 
-  dispatchRequest({ url, config }) {
-    const abortController = new AbortController();
-    const timeout = this.config.timeout || 0;
+  async dispatchRequest({ url, config }) {
+    const finalConfig = this.mergeConfig(config);
 
-    if(timeout) {
-        setTimeout(() => abortController.abort(), timeout)
+    const abortController = new AbortController();
+    const timeout = finalConfig.timeout || 0;
+
+    let timeoutId;
+    if (timeout) {
+      timeoutId = setTimeout(() => abortController.abort(), timeout);
     }
 
-    const finalConfig = this.mergeConfig(config);
-    return fetch(`${this.config.baseURL}${url}`, {...finalConfig, signal: abortController.signal});
+    try {
+      const response = await fetch(`${this.config.baseURL}${url}`, {
+        ...finalConfig,
+        signal: abortController.signal,
+      });
+      return response;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
   }
 
   async get(url, config) {
