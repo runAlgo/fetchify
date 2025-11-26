@@ -5,11 +5,23 @@ class Fetchify{
         }
     }
     constructor(config) {
-        this.config = config;
+        this.config = this.mergeConfig(config);
     }
 
-    async get(url) {
-        return "working"
+    async get(url, config) {
+        const finalConfig = this.mergeConfig(config)
+        return fetch(`${this.config.baseURL}${url}`, finalConfig);     
+    }
+
+    mergeConfig(config) {
+       return {
+        ...this.config, //
+        ...config,
+        headers: {
+            ...(this.config.headers || {}),
+            ...(config?.headers || {}),
+        }
+       }
     }
 }
 
