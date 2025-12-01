@@ -1,4 +1,5 @@
 # Fetchify todos
 
 [v] Config merging
-[x] Timeout
+[v] Timeout
+[v] Interceptors
